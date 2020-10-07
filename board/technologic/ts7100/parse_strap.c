@@ -23,17 +23,34 @@
 #define	LCD_DATA08	IMX_GPIO_NR(3, 13)	/* Bit 6 / IO model bit 2 */
 #define	UART3_CTS_B	IMX_GPIO_NR(1, 26)	/* Bit 7 / IO model bit 3 */
 
+/*
+ * For Rev A:
+ *
+ * Four straps on the CPU board go into the FPGA:
+ *   IO_B0_SCL, IO_B0 (C9), IO_B0_SDA (), IO_B0 (C6)
+ *
+ */
 
 /* NOTE: Before this function is called, it expects that the IOMUX be set up
  * ahead of time. Meaning, pin function (GPIO) and pullup need to be set up
  * before the parse_strap() function is called.
  */
-uint8_t parse_strap(const char *env_name)
+uint8_t parse_strap(void)
 {
 	static uint8_t opts;
 	static uint8_t read;
 
 	if(!read) {
+		opts = 1;
+		gpio_request(NAND_CE0_B, "NAND_CE0_B");
+		gpio_request(UART2_TX_DATA, "UART2_TX_DATA");
+		gpio_request(UART5_TX_DATA, "UART5_TX_DATA");
+		gpio_request(UART4_TX_DATA, "UART4_TX_DATA");
+		gpio_request(UART3_TX_DATA, "UART3_TX_DATA");
+		gpio_request(NAND_CE1_B, "NAND_CE1_B");
+		gpio_request(LCD_DATA08, "LCD_DATA08");
+		gpio_request(UART3_CTS_B, "UART3_CTS_B");
+
 		gpio_direction_input(NAND_CE0_B);
 		gpio_direction_input(UART2_TX_DATA);
 		gpio_direction_input(UART5_TX_DATA);
@@ -61,6 +78,5 @@ uint8_t parse_strap(const char *env_name)
 
 		read = 1;
 	}
-	if (env_name) env_set_hex(env_name, opts);
 	return opts;
 }
