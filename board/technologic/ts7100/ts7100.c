@@ -249,101 +249,11 @@ int board_usb_phy_mode(int port)
 }
 #endif
 
-#ifdef CONFIG_FEC_MXC
-static iomux_v3_cfg_t const fec_enet_pads[] = {
-	MX6_PAD_ENET1_RX_DATA0__ENET1_RDATA00 | MUX_PAD_CTRL(ENET_PAD_CTRL),
-	MX6_PAD_ENET1_RX_DATA1__ENET1_RDATA01 | MUX_PAD_CTRL(ENET_PAD_CTRL),
-
-	MX6_PAD_ENET1_RX_EN__ENET1_RX_EN | MUX_PAD_CTRL(ENET_PAD_CTRL),
-	MX6_PAD_ENET1_RX_ER__ENET1_RX_ER | MUX_PAD_CTRL(ENET_PAD_CTRL),
-
-	MX6_PAD_ENET1_TX_DATA0__ENET1_TDATA00 | MUX_PAD_CTRL(ENET_PAD_CTRL),
-	MX6_PAD_ENET1_TX_DATA1__ENET1_TDATA01 | MUX_PAD_CTRL(ENET_PAD_CTRL),
-	MX6_PAD_ENET1_TX_EN__ENET1_TX_EN | MUX_PAD_CTRL(ENET_PAD_CTRL),
-	MX6_PAD_ENET1_TX_CLK__ENET1_REF_CLK1 | MUX_PAD_CTRL(ENET_CLK_PAD_CTRL),
-
-	MX6_PAD_ENET2_RX_DATA0__ENET2_RDATA00 | MUX_PAD_CTRL(ENET_PAD_CTRL),
-	MX6_PAD_ENET2_RX_DATA1__ENET2_RDATA01 | MUX_PAD_CTRL(ENET_PAD_CTRL),
-	MX6_PAD_ENET2_RX_EN__ENET2_RX_EN | MUX_PAD_CTRL(ENET_PAD_CTRL),
-	MX6_PAD_ENET2_RX_ER__ENET2_RX_ER | MUX_PAD_CTRL(ENET_PAD_CTRL),
-
-	MX6_PAD_ENET2_TX_DATA0__ENET2_TDATA00 | MUX_PAD_CTRL(ENET_PAD_CTRL),
-	MX6_PAD_ENET2_TX_DATA1__ENET2_TDATA01 | MUX_PAD_CTRL(ENET_PAD_CTRL),
-	MX6_PAD_ENET2_TX_EN__ENET2_TX_EN | MUX_PAD_CTRL(ENET_PAD_CTRL),
-	MX6_PAD_ENET2_TX_CLK__ENET2_REF_CLK2 | MUX_PAD_CTRL(ENET_PAD_CTRL),
-
-#if (CONFIG_FEC_ENET_DEV == 0)
-	MX6_PAD_GPIO1_IO06__ENET1_MDIO | MUX_PAD_CTRL(ENET_PAD_CTRL),
-	MX6_PAD_GPIO1_IO07__ENET1_MDC | MUX_PAD_CTRL(ENET_PAD_CTRL),
-#else
-	MX6_PAD_GPIO1_IO06__ENET2_MDIO | MUX_PAD_CTRL(ENET_PAD_CTRL),
-	MX6_PAD_GPIO1_IO07__ENET2_MDC | MUX_PAD_CTRL(ENET_PAD_CTRL),
-#endif
-
-};
-
-static iomux_v3_cfg_t const fec_enet_pads1[] = {
-	MX6_PAD_GPIO1_IO06__ENET1_MDIO | MUX_PAD_CTRL(ENET_PAD_CTRL),
-	MX6_PAD_GPIO1_IO07__ENET1_MDC | MUX_PAD_CTRL(ENET_PAD_CTRL),
-	/* DUPLEX */
-	MX6_PAD_ENET1_RX_DATA0__GPIO2_IO00 | MUX_PAD_CTRL(ENET_PAD_CTRL),
-	/* DUPLEX */
-	MX6_PAD_ENET2_RX_DATA0__GPIO2_IO08 | MUX_PAD_CTRL(ENET_PAD_CTRL),
-	/* PHYADDR2 */
-	MX6_PAD_ENET1_RX_DATA1__GPIO2_IO01 | MUX_PAD_CTRL(ENET_PAD_CTRL),
-	/* PHYADDR2 */
-	MX6_PAD_ENET2_RX_DATA1__GPIO2_IO09 | MUX_PAD_CTRL(ENET_PAD_CTRL),
-	/* CONFIG_2 */
-	MX6_PAD_ENET1_RX_EN__GPIO2_IO02 | MUX_PAD_CTRL(ENET_PAD_CTRL),
-	/* CONFIG_2 */
-	MX6_PAD_ENET2_RX_EN__GPIO2_IO10 | MUX_PAD_CTRL(ENET_PAD_CTRL),
-	/* Isolate */
-	MX6_PAD_ENET1_RX_ER__GPIO2_IO07 | MUX_PAD_CTRL(ENET_PAD_CTRL),
-	/* Isolate */
-	MX6_PAD_ENET2_RX_ER__GPIO2_IO15 | MUX_PAD_CTRL(ENET_PAD_CTRL),
-};
-
-int board_eth_init(bd_t *bis)
-{
-	/* Set pins to strapping GPIO modes */
-	imx_iomux_v3_setup_multiple_pads(fec_enet_pads1,
-					 ARRAY_SIZE(fec_enet_pads1));
-
-	fpga_dio2_dat_clr(BANK2_PHY_RESETN);
-	fpga_dio2_oe_set(BANK2_PHY_RESETN);
-	gpio_direction_output(PHY1_DUPLEX, 0);
-	gpio_direction_output(PHY2_DUPLEX, 0);
-	gpio_direction_output(PHY1_PHYADDR2, 0);
-	gpio_direction_output(PHY2_PHYADDR2, 0);
-	gpio_direction_output(PHY1_CONFIG_2, 0);
-	gpio_direction_output(PHY2_CONFIG_2, 0);
-	gpio_direction_output(PHY1_ISOLATE, 0);
-	gpio_direction_output(PHY2_ISOLATE, 0);
-
-	udelay(1); // 5ns
-	fpga_dio2_dat_set(BANK2_PHY_RESETN);
-	udelay(1); // 5ns
-
-	/* Set pins to enet modes */
-	imx_iomux_v3_setup_multiple_pads(fec_enet_pads,
-					 ARRAY_SIZE(fec_enet_pads));
-
-	return fecmxc_initialize_multi(bis, CONFIG_FEC_ENET_DEV,
-						 CONFIG_FEC_MXC_PHYADDR, IMX_FEC_BASE);
-}
-
-static int setup_fec(int fec_id)
+static int setup_fec(void)
 {
 	struct iomuxc *const iomuxc_regs = (struct iomuxc *)IOMUXC_BASE_ADDR;
 	int ret;
-
-#if 0
-        // What happened to these check_module_fused() checks?
-	if (check_module_fused(MX6_MODULE_ENET1))
-		return -1;
-	if (check_module_fused(MX6_MODULE_ENET2))
-		return -1;
-#endif
+        debug("** ts7100.c: setup_fec\n");
         
 	/*
 	 * Use 50M anatop loopback REF_CLK1 for ENET1,
@@ -383,8 +293,8 @@ int board_init(void)
 {
 	/* Address of boot parameters */
 	gd->bd->bi_boot_params = PHYS_SDRAM + 0x100;
-#ifdef CONFIG_FEC_MXC
-	setup_fec(CONFIG_FEC_ENET_DEV);
+#if defined(CONFIG_FEC_MXC)
+	setup_fec();
 #endif
 
 #ifdef CONFIG_FPGA
