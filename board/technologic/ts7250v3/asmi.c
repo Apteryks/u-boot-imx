@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: GPL-2.0+ */
 /*
- * Copyright (C) 2020 Technologic Systems
+ * Copyright (C) 2020-2022 Technologic Systems, Inc. dba embeddedTS
  *
  * This driver is for accessing Altera's ASMI core exposed through a 32-bit reg
  * This is a SPI flash core that is used to reload the onboard FPGA flash.
